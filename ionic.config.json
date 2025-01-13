@@ -1,0 +1,7 @@
+{
+  "name": "reactivewebsocketapp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
