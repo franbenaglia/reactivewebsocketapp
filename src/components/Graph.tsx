@@ -5,7 +5,11 @@ import { useEffect, useState } from 'react';
 import { Line } from "react-chartjs-2";
 import { Climate } from '../model/Climate';
 import './List.css';
-import { webSocket$ } from '../websocket/Configuration';
+import { StompSessionProvider, useSubscription } from "react-stomp-hooks";
+
+const URL_WS_SERVER = import.meta.env.VITE_URL_WS_SERVER;
+const VITE_WS_TOPIC = import.meta.env.VITE_WS_TOPIC;
+
 
 interface Data {
   labels: number[];
@@ -25,15 +29,6 @@ const Graph: React.FC = () => {
   useEffect(() => {
 
     configData();
-
-    webSocket$.subscribe((data) => {
-      const d = JSON.parse(data);
-      console.log(d);
-      console.log(data);
-      if (!stop) {
-        setClimate([...climate, data]);
-      }
-    });
 
   }, [climate]);
 
@@ -85,8 +80,24 @@ const Graph: React.FC = () => {
     setStop(stopped);
   }
 
+  const Subscribing = () => {
+    useSubscription(VITE_WS_TOPIC, (message) => {
+      const d = JSON.parse(message.body);
+      if (!stop) {
+        setClimate([...climate, d]);
+      }
+    }
+    );
+    return <></>;
+  }
+
   return (
     <>
+      <StompSessionProvider
+        url={URL_WS_SERVER} >
+        <Subscribing />
+      </StompSessionProvider>
+
       <Line
         data={chartData}
         options={{

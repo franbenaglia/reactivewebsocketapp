@@ -1,9 +1,19 @@
-import { webSocket } from 'rxjs/webSocket';
+export const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
 
-const URL = 'ws://localhost:8080/climateData';  // URL of the WebSocket server HUB
+clientWebSocket.onopen = function () {
+    console.log("clientWebSocket.onopen", clientWebSocket);
+    console.log("clientWebSocket.readyState", "websocketstatus");
+    //clientWebSocket.send("event-me-from-browser");
+}
+clientWebSocket.onclose = function (error) {
+    console.log("clientWebSocket.onclose", clientWebSocket, error);
 
-const webSocketSubject = webSocket<any>(URL);
+}
+clientWebSocket.onerror = function (error) {
+    console.log("clientWebSocket.onerror", clientWebSocket, error);
 
-export const webSocket$ = webSocketSubject.asObservable();
+}
+clientWebSocket.onmessage = function (error) {
+    //console.log("clientWebSocket.onmessage", clientWebSocket, error);
 
-
+}

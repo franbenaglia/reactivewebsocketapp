@@ -1,7 +1,7 @@
 import { IonCol, IonGrid, IonRow } from '@ionic/react';
 import { useEffect, useState } from 'react';
 import { Climate } from '../model/Climate';
-import { webSocket$ } from '../websocket/Configuration';
+//import { clientWebSocket } from '../websocket/Configuration';
 import './List.css';
 
 
@@ -15,15 +15,32 @@ const List: React.FC = () => {
 
   const availableColors: string[] = ['red', 'white', 'blue', 'green', 'yellow', 'purple', 'cyan', 'magenta', 'pink'];
 
+  const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
+
   useEffect(() => {
 
     initializeColor();
 
-    webSocket$.subscribe((data) => {
-      const d = JSON.parse(data);
-      console.log(data);
-      console.log(d);
+    clientWebSocket.onopen = function () {
+      console.log("clientWebSocket.onopen", clientWebSocket);
+      console.log("clientWebSocket.readyState", "websocketstatus");
+      //clientWebSocket.send("event-me-from-browser");
+    }
+
+    clientWebSocket.onclose = function (error) {
+      console.log("clientWebSocket.onclose", clientWebSocket, error);
+    }
+
+    clientWebSocket.onerror = function (error) {
+      console.log("clientWebSocket.onerror", clientWebSocket, error);
+    }
+
+    clientWebSocket.onmessage = function (data) {
+      console.log("clientWebSocket.onmessage.data", data.data);
+      const d: Climate = JSON.parse(data.data);
       cssForChannel(d.channel);
+      console.log(d);
+
       //data.color = availableColors[index];
       //setIndex(index => {
       //  if (!channelColor.has(data.channel)) {
@@ -31,8 +48,10 @@ const List: React.FC = () => {
       //  }
       //  return index < availableColors.length ? index + 1 : 0;
       //});
+
       setClimate([...climate, d]);
-    });
+
+    }
 
   }, [climate]);
 
