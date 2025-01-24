@@ -26,9 +26,34 @@ const Graph: React.FC = () => {
 
   const availableColors: string[] = ['red', 'white', 'blue', 'green', 'yellow', 'purple', 'cyan', 'magenta', 'pink'];
 
+  const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
+
   useEffect(() => {
 
     configData();
+
+    clientWebSocket.onopen = function () {
+      console.log("clientWebSocket.onopen", clientWebSocket);
+      console.log("clientWebSocket.readyState", "websocketstatus");
+      //clientWebSocket.send("event-me-from-browser");
+    }
+
+    clientWebSocket.onclose = function (error) {
+      console.log("clientWebSocket.onclose", clientWebSocket, error);
+    }
+
+    clientWebSocket.onerror = function (error) {
+      console.log("clientWebSocket.onerror", clientWebSocket, error);
+    }
+
+    clientWebSocket.onmessage = function (data) {
+      console.log("clientWebSocket.onmessage.data", data.data);
+      const d: Climate = JSON.parse(data.data);
+      console.log(d);
+
+      setClimate([...climate, d]);
+
+    }
 
   }, [climate]);
 
@@ -91,13 +116,17 @@ const Graph: React.FC = () => {
     return <></>;
   }
 
+
+  //stomp version inside template
+  const stomp = () => {
+    <StompSessionProvider
+      url={URL_WS_SERVER} >
+      <Subscribing />
+    </StompSessionProvider>
+  }
+
   return (
     <>
-      <StompSessionProvider
-        url={URL_WS_SERVER} >
-        <Subscribing />
-      </StompSessionProvider>
-
       <Line
         data={chartData}
         options={{
