@@ -30,6 +30,7 @@
     "react-router-dom": "^5.3.4",
     "react-stomp": "^5.1.0",
     "react-stomp-hooks": "^3.0.1",
+    "react-use-websocket": "^4.11.1",
     "ws": "^8.18.0"
   },
   "devDependencies": {

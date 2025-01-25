@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { Climate } from '../model/Climate';
 //import { clientWebSocket } from '../websocket/Configuration';
 import './List.css';
-
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+const URL_WS_SERVER = import.meta.env.VITE_URL_WS_SERVER;
 
 const List: React.FC = () => {
 
@@ -11,49 +12,46 @@ const List: React.FC = () => {
   const [channelColor, setChannelColor] = useState<Map<number, string>>(new Map<number, string>());
   const [colorCount, setColorCount] = useState<Map<string, number>>(new Map<string, number>());
 
+  const [socketUrl, setSocketUrl] = useState(URL_WS_SERVER);
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const [messageHistory, setMessageHistory] = useState<MessageEvent<any>[]>([]);
+
+  const connectionStatus = {
+    [ReadyState.CONNECTING]: 'Connecting',
+    [ReadyState.OPEN]: 'Open',
+    [ReadyState.CLOSING]: 'Closing',
+    [ReadyState.CLOSED]: 'Closed',
+    [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+  }[readyState];
+
   const [index, setIndex] = useState<number>(0);
 
   const availableColors: string[] = ['red', 'white', 'blue', 'green', 'yellow', 'purple', 'cyan', 'magenta', 'pink'];
 
-  const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
 
   useEffect(() => {
 
     initializeColor();
 
-    clientWebSocket.onopen = function () {
-      console.log("clientWebSocket.onopen", clientWebSocket);
-      console.log("clientWebSocket.readyState", "websocketstatus");
-      //clientWebSocket.send("event-me-from-browser");
-    }
-
-    clientWebSocket.onclose = function (error) {
-      console.log("clientWebSocket.onclose", clientWebSocket, error);
-    }
-
-    clientWebSocket.onerror = function (error) {
-      console.log("clientWebSocket.onerror", clientWebSocket, error);
-    }
-
-    clientWebSocket.onmessage = function (data) {
-      console.log("clientWebSocket.onmessage.data", data.data);
-      const d: Climate = JSON.parse(data.data);
-      cssForChannel(d.channel);
+    if (lastMessage !== null) {
+      const d: Climate = JSON.parse(lastMessage.data);
       console.log(d);
-
-      //data.color = availableColors[index];
-      //setIndex(index => {
-      //  if (!channelColor.has(data.channel)) {
-      //    setChannelColor(previous => previous.set(data.channel, data.color));
-      //  }
-      //  return index < availableColors.length ? index + 1 : 0;
-      //});
-
+      cssForChannel(d.channel);
       setClimate([...climate, d]);
-
     }
 
-  }, [climate]);
+
+
+
+    //data.color = availableColors[index];
+    //setIndex(index => {
+    //  if (!channelColor.has(data.channel)) {
+    //    setChannelColor(previous => previous.set(data.channel, data.color));
+    //  }
+    //  return index < availableColors.length ? index + 1 : 0;
+    //});
+
+  }, [lastMessage]);
 
 
   const cssForChannel = (c: number): void => {

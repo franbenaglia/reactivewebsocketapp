@@ -1,4 +1,4 @@
-import { IonFab, IonToggle } from '@ionic/react';
+import { IonButton, IonFab, IonToggle } from '@ionic/react';
 import { CategoryScale } from "chart.js";
 import Chart from "chart.js/auto";
 import { useEffect, useState } from 'react';
@@ -6,8 +6,10 @@ import { Line } from "react-chartjs-2";
 import { Climate } from '../model/Climate';
 import './List.css';
 import { StompSessionProvider, useSubscription } from "react-stomp-hooks";
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 const URL_WS_SERVER = import.meta.env.VITE_URL_WS_SERVER;
+const URL_WS_STOMP_SERVER = import.meta.env.VITE_URL_WS_STOMP_SERVER;
 const VITE_WS_TOPIC = import.meta.env.VITE_WS_TOPIC;
 
 
@@ -23,39 +25,31 @@ const Graph: React.FC = () => {
   const [climate, setClimate] = useState<Climate[]>([]);
   const [chartData, setChartData] = useState<Data>({ labels: [], datasets: [] });
   const [stop, setStop] = useState(false);
+  const [socketUrl, setSocketUrl] = useState(URL_WS_SERVER);
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const [messageHistory, setMessageHistory] = useState<MessageEvent<any>[]>([]);
+
+  const connectionStatus = {
+    [ReadyState.CONNECTING]: 'Connecting',
+    [ReadyState.OPEN]: 'Open',
+    [ReadyState.CLOSING]: 'Closing',
+    [ReadyState.CLOSED]: 'Closed',
+    [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+  }[readyState];
 
   const availableColors: string[] = ['red', 'white', 'blue', 'green', 'yellow', 'purple', 'cyan', 'magenta', 'pink'];
-
-  const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
 
   useEffect(() => {
 
     configData();
 
-    clientWebSocket.onopen = function () {
-      console.log("clientWebSocket.onopen", clientWebSocket);
-      console.log("clientWebSocket.readyState", "websocketstatus");
-      //clientWebSocket.send("event-me-from-browser");
-    }
-
-    clientWebSocket.onclose = function (error) {
-      console.log("clientWebSocket.onclose", clientWebSocket, error);
-    }
-
-    clientWebSocket.onerror = function (error) {
-      console.log("clientWebSocket.onerror", clientWebSocket, error);
-    }
-
-    clientWebSocket.onmessage = function (data) {
-      console.log("clientWebSocket.onmessage.data", data.data);
-      const d: Climate = JSON.parse(data.data);
+    if (lastMessage !== null) {
+      const d: Climate = JSON.parse(lastMessage.data);
       console.log(d);
-
       setClimate([...climate, d]);
-
     }
+  }, [lastMessage]);
 
-  }, [climate]);
 
   const configData = () => {
 
@@ -72,7 +66,7 @@ const Graph: React.FC = () => {
       //labels.push(data.idx);
 
       if (data.idx == 0) {
-        map.clear();
+        //map.clear();
       }
 
       if (map.has(data.channel)) {
@@ -105,6 +99,10 @@ const Graph: React.FC = () => {
     setStop(stopped);
   }
 
+  const reset = () => {
+    setClimate([]);
+  }
+
   const Subscribing = () => {
     useSubscription(VITE_WS_TOPIC, (message) => {
       const d = JSON.parse(message.body);
@@ -120,7 +118,7 @@ const Graph: React.FC = () => {
   //stomp version inside template
   const stomp = () => {
     <StompSessionProvider
-      url={URL_WS_SERVER} >
+      url={URL_WS_STOMP_SERVER} >
       <Subscribing />
     </StompSessionProvider>
   }
@@ -144,6 +142,9 @@ const Graph: React.FC = () => {
 
       <IonFab slot="fixed" vertical="top" horizontal="start">
         <IonToggle checked={stop} onClick={() => toggleStop()}>Stop data logger</IonToggle>
+      </IonFab >
+      <IonFab slot="fixed" vertical="top" horizontal="end">
+        <IonButton size="small" onClick={() => reset()}>Reset data logger</IonButton>
       </IonFab >
 
     </>

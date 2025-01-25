@@ -1,4 +1,4 @@
-export const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
+const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
 
 clientWebSocket.onopen = function () {
     console.log("clientWebSocket.onopen", clientWebSocket);
