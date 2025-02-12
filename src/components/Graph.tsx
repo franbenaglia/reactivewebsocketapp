@@ -28,6 +28,8 @@ const Graph: React.FC = () => {
   const [socketUrl, setSocketUrl] = useState(URL_WS_SERVER);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
   const [messageHistory, setMessageHistory] = useState<MessageEvent<any>[]>([]);
+  const [chartDataMulti, setChartDataMulti] = useState<Map<number, Climate[]>>(new Map<number, Climate[]>());
+  const [multi, setMulti] = useState(true);
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
@@ -76,6 +78,8 @@ const Graph: React.FC = () => {
       }
     });
 
+    setChartDataMulti(map);
+
     for (const c of map.values()) {
 
       dss.push(
@@ -114,6 +118,10 @@ const Graph: React.FC = () => {
     return <></>;
   }
 
+  const toggleView = () => {
+    setMulti(!multi);
+  }
+
 
   //stomp version inside template
   const stomp = () => {
@@ -125,7 +133,7 @@ const Graph: React.FC = () => {
 
   return (
     <>
-      <Line
+      {!multi ? (<Line
         data={chartData}
         options={{
           plugins: {
@@ -138,13 +146,49 @@ const Graph: React.FC = () => {
             }
           }
         }}
-      />
+      />)
+        :
+        (
+
+          Array.from(chartDataMulti.entries()).map((key, value) =>
+            <Line
+              data={
+                {
+                  labels: key[1] && key[1].length > 0 ? key[1].map((data, idx) => new Date(data.date).getTime()) : [],
+                  datasets: [{
+                    label: "Temperature channel: " + key[0],
+                    data: key[1] && key[1].length > 0 ? key[1].map((data, idx) => data.temperature) : [],
+                    backgroundColor: availableColors,
+                    borderColor: "black",
+                    borderWidth: 2
+                  }]
+                }
+              }
+              options={{
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Temperature channel: " + key[0],
+                  },
+                  legend: {
+                    display: false
+                  }
+                }
+              }}
+            />
+          )
+
+        )
+      }
 
       <IonFab slot="fixed" vertical="top" horizontal="start">
         <IonToggle checked={stop} onClick={() => toggleStop()}>Stop data logger</IonToggle>
       </IonFab >
       <IonFab slot="fixed" vertical="top" horizontal="end">
         <IonButton size="small" onClick={() => reset()}>Reset data logger</IonButton>
+      </IonFab >
+      <IonFab slot="fixed" vertical="center" horizontal="end">
+        <IonToggle checked={multi} onClick={() => toggleView()}>Switch view</IonToggle>
       </IonFab >
 
     </>

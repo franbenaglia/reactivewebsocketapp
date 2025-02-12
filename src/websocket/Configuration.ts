@@ -1,4 +1,6 @@
-const clientWebSocket = new WebSocket('ws://localhost:8080/climateData');
+const VITE_URL_WS_SERVER = import.meta.env.VITE_URL_WS_SERVER;
+
+const clientWebSocket = new WebSocket(VITE_URL_WS_SERVER);
 
 clientWebSocket.onopen = function () {
     console.log("clientWebSocket.onopen", clientWebSocket);
