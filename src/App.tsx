@@ -35,6 +35,7 @@ import '@ionic/react/css/palettes/dark.system.css';
 import './theme/variables.css';
 import GraphPage from './pages/GraphPages';
 import ListPage from './pages/ListPage';
+import VideoStreamPage from './pages/VideoStreamPage';
 
 setupIonicReact();
 
@@ -50,11 +51,15 @@ const App: React.FC = () => {
             </Route>
 
             <Route path="/graph" exact={true}>
-              <GraphPage/>
+              <GraphPage />
             </Route>
 
             <Route path="/list" exact={true}>
-              <ListPage/>
+              <ListPage />
+            </Route>
+
+            <Route path="/videostream" exact={true}>
+              <VideoStreamPage />
             </Route>
 
             <Route path="/folder/:name" exact={true}>

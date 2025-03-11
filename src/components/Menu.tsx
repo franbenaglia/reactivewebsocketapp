@@ -42,6 +42,12 @@ const appPages: AppPage[] = [
     iosIcon: heartOutline,
     mdIcon: heartSharp
   },
+  {
+    title: 'Video Stream',
+    url: '/videostream',
+    iosIcon: heartOutline,
+    mdIcon: heartSharp
+  },
 ];
 
 const Menu: React.FC = () => {

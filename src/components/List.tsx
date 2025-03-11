@@ -11,7 +11,7 @@ const List: React.FC = () => {
   const [climate, setClimate] = useState<Climate[]>([]);
   const [channelColor, setChannelColor] = useState<Map<number, string>>(new Map<number, string>());
   const [colorCount, setColorCount] = useState<Map<string, number>>(new Map<string, number>());
-
+  //https://ably.com/blog/websocket-authentication
   const [socketUrl, setSocketUrl] = useState(URL_WS_SERVER);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
   const [messageHistory, setMessageHistory] = useState<MessageEvent<any>[]>([]);
